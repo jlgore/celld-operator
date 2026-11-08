@@ -1,6 +1,6 @@
 # Tenant isolation: implementation plan
 
-Status: in progress on `feat/tenant-microvm-isolation`. Design rationale and
+Status: steps 1-11 done on `feat/tenant-microvm-isolation`. Not yet run: the e2e under a real krun/kata RuntimeClass under kubelet. Design rationale and
 the threat model live in [DESIGN.md](DESIGN.md); verified facts (with
 sources) and assumptions that turned out false live in
 [FINDINGS.md](FINDINGS.md).
