@@ -14,20 +14,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-- apiGroups:
-  - ""
-  resources:
+  - limitranges
+  - namespaces
+  - resourcequotas
   - serviceaccounts
   - services
   verbs:
@@ -39,8 +28,27 @@ rules:
   - update
   - watch
 - apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
   - apps
   resources:
+  - deployments
   - statefulsets
   verbs:
   - create
@@ -61,6 +69,32 @@ rules:
 - apiGroups:
   - celld-operator.io
   resources:
+  - tenants
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - celld-operator.io
+  resources:
+  - tenants/finalizers
+  - workerapps/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - celld-operator.io
+  resources:
+  - tenants/status
+  - workerapps/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - celld-operator.io
+  resources:
   - workerapps
   verbs:
   - create
@@ -71,19 +105,11 @@ rules:
   - update
   - watch
 - apiGroups:
-  - celld-operator.io
+  - discovery.k8s.io
   resources:
-  - workerapps/finalizers
+  - endpointslices
   verbs:
-  - update
-- apiGroups:
-  - celld-operator.io
-  resources:
-  - workerapps/status
-  verbs:
-  - get
-  - patch
-  - update
+  - list
 - apiGroups:
   - gateway.networking.k8s.io
   resources:
@@ -152,9 +178,30 @@ rules:
   - update
   - watch
 - apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - system:auth-delegator
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+- apiGroups:
   - security.istio.io
   resources:
   - authorizationpolicies
+  - peerauthentications
   verbs:
   - create
   - delete

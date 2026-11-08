@@ -46,6 +46,7 @@ import (
 
 	platformv1alpha1 "github.com/ezgamehost/celld-operator/api/v1alpha1"
 	"github.com/ezgamehost/celld-operator/internal/controller"
+	"github.com/ezgamehost/celld-operator/internal/controller/tenant"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -139,8 +140,10 @@ func main() {
 	opts := zap.Options{
 		Development: false,
 	}
+	tenants := tenant.RegisterFlags()
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	namespaceLocalEndpoints = namespaceLocalEndpoints || tenants.Enabled()
 	validModes := []string{controller.IngressModeHTTPRoute, controller.IngressModeIngress,
 		controller.IngressModeVirtualService, controller.IngressModeNone}
 	if !slices.Contains(validModes, ingressMode) || statePollInterval <= 0 || deployPollInterval <= 0 {
@@ -291,6 +294,10 @@ func main() {
 		Interval: statePollInterval,
 	}); err != nil {
 		setupLog.Error(err, "Failed to add fleet state poller")
+		os.Exit(1)
+	}
+	if err := tenants.Setup(mgr, watchNamespace, operatorNamespace, gatewayNamespace); err != nil {
+		setupLog.Error(err, "Failed to create controller", "controller", "Tenant")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
