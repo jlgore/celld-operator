@@ -1,0 +1,25 @@
+# libkrun microVMs through crun (`krun` is crun invoked as argv[0]=krun).
+# Each container runs in its own KVM guest; the VMM shares the container's
+# security context on the host (see docs/isolation/DESIGN.md, residual risks).
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: krun
+  labels:
+    app.kubernetes.io/part-of: celld-operator
+handler: krun
+# The VMM's own memory and CPU are charged to the pod. Keep in step with
+# --tenant-pod-overhead-cpu / --tenant-pod-overhead-memory.
+overhead:
+  podFixed:
+    cpu: 250m
+    memory: 256Mi
+scheduling:
+  # Only nodes with /dev/kvm and the krun handler configured in the CRI.
+  nodeSelector:
+    celld-operator.io/kvm: "true"
+    celld-operator.io/runtime-krun: "true"
+  tolerations:
+    - key: celld-operator.io/microvm
+      operator: Exists
+      effect: NoSchedule

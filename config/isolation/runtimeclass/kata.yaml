@@ -1,0 +1,22 @@
+# Kata Containers: one lightweight VM per pod, with its own guest kernel and
+# kata-agent (QEMU or Cloud Hypervisor VMM). kata-deploy registers the
+# handler and labels nodes katacontainers.io/kata-runtime=true.
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata
+  labels:
+    app.kubernetes.io/part-of: celld-operator
+handler: kata
+overhead:
+  podFixed:
+    cpu: 250m
+    memory: 160Mi
+scheduling:
+  nodeSelector:
+    celld-operator.io/kvm: "true"
+    katacontainers.io/kata-runtime: "true"
+  tolerations:
+    - key: celld-operator.io/microvm
+      operator: Exists
+      effect: NoSchedule

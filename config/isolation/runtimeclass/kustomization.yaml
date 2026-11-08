@@ -1,0 +1,5 @@
+# RuntimeClasses for tenant microVMs. Install the one(s) your nodes support;
+# a Tenant selects one by name (spec.runtimeClassName, default "krun").
+resources:
+  - krun.yaml
+  - kata.yaml
