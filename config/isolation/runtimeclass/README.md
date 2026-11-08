@@ -74,6 +74,14 @@ an image with `STOPSIGNAL SIGINT`
 Check a node with
 [hack/isolation/krun-sigterm/run.sh](../../../hack/isolation/krun-sigterm/run.sh).
 
+The upstream fix is [libkrun#912](https://github.com/libkrun/libkrun/pull/912)
+together with a crun built against it (unreleased; see
+[upstream/libkrun-sigterm-forwarding.md](../../../docs/isolation/upstream/libkrun-sigterm-forwarding.md)).
+It is opt-in per container through the annotation `krun.exec=1`. Once
+it ships, allow that annotation (CRI-O `allowed_annotations`, containerd
+`pod_annotations`) and set it on the fleet pods. The same server also
+makes `kubectl exec` run inside the guest.
+
 ### Inspecting a krun pod
 
 `kubectl exec` runs on the host side of the VM boundary, in the

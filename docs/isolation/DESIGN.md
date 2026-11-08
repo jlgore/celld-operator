@@ -94,9 +94,11 @@ pod stop waits out the 60 s grace period and is SIGKILLed. Durable
 Objects then move only after their leases expire (FINDINGS.md section 4).
 Mitigation for celld: package it with `STOPSIGNAL SIGINT`
 (`hack/isolation/celld-stopsignal`). workerd cluster mode drains only on
-SIGTERM, so it needs the libkrun change proposed in
-[upstream/libkrun-sigterm-forwarding.md](upstream/libkrun-sigterm-forwarding.md),
-or kata.
+SIGTERM, so it needs kata, or libkrun 2.0 with
+[libkrun#912](https://github.com/libkrun/libkrun/pull/912) plus a crun that
+uses it, with the pod annotation `krun.exec=1` passed through to the OCI
+spec. That combination was measured to deliver SIGTERM, but is not released
+([upstream/libkrun-sigterm-forwarding.md](upstream/libkrun-sigterm-forwarding.md)).
 
 **R3. Pod-network encryption is declared, not verified.** The operator
 configures Istio ambient itself, but for Cilium WireGuard it trusts
@@ -165,7 +167,7 @@ RuntimeClass and peer encryption.
 | Conditional writes | `If-None-Match: *` / `If-Match`; the proxy passes them through | The same headers |
 | Peer port / admin | `:8081` (peers and admin on one listener) | `--cluster-addr` (peers); `/ready` for readiness |
 | Inter-node secret | none | `ClusterConfig.key`: a Secret in the VM (not a bucket credential) |
-| Graceful stop | SIGTERM or SIGINT; under krun use `STOPSIGNAL SIGINT` | SIGTERM only: needs the libkrun fix or kata |
+| Graceful stop | SIGTERM or SIGINT; under krun use `STOPSIGNAL SIGINT` | SIGTERM only: needs kata, or libkrun#912 with `krun.exec=1` (unreleased) |
 
 `spec.engine` exists now (enum: `celld`), so adding `workerd` is an
 additive API change. The e2e suite's isolation assertions are written
