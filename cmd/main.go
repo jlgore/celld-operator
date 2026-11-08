@@ -123,6 +123,7 @@ func main() {
 		"How often fleet buckets' deploy/current.json is polled for appVersion \"auto\" tracking.")
 	var watchNamespace, imagePrefixes, iamRoles, azureIDs, bucketEndpoints string
 	var routeRetries bool
+	var namespaceLocalEndpoints bool
 	flag.StringVar(&watchNamespace, "watch-namespace", "",
 		"Restrict reconciliation to this namespace; pair with namespaced RBAC.")
 	flag.StringVar(&imagePrefixes, "allowed-image-prefixes", "ghcr.io/denoland/celld:",
@@ -131,6 +132,8 @@ func main() {
 	flag.StringVar(&azureIDs, "allowed-azure-client-ids", "", "Comma-separated allowed Azure workload identities.")
 	flag.StringVar(&bucketEndpoints, "allowed-bucket-endpoints", "",
 		"Allowed HTTPS storage endpoints; empty permits AWS S3 only.")
+	flag.BoolVar(&namespaceLocalEndpoints, "allow-namespace-local-bucket-endpoints", false,
+		"Accept a bucket endpoint that is a Service in the WorkerApp's own namespace (a tenant storage proxy).")
 	flag.BoolVar(&routeRetries, "httproute-retries", false,
 		"Requires experimental Gateway API CRDs.")
 	opts := zap.Options{
@@ -262,6 +265,7 @@ func main() {
 		AllowedAzureClientIDs:  splitList(azureIDs),
 		AllowedBucketEndpoints: splitList(bucketEndpoints),
 		HTTPRouteRetries:       routeRetries,
+		LocalBucketEndpoints:   namespaceLocalEndpoints,
 		Client:                 mgr.GetClient(),
 		Scheme:                 mgr.GetScheme(),
 		State:                  stateClient,
