@@ -172,9 +172,17 @@ stops it.
 - **workerd cluster mode drains only on SIGTERM** (`server/server/entry.rs:216-236`,
   `cluster/logic/handoff.rs:9`). SIGINT takes the default action there, so the
   STOPSIGNAL workaround does not carry over. A runtime-swappable design
-  needs SIGTERM forwarding in libkrun. That is proposed upstream in
+  needs SIGTERM forwarding in libkrun. That is in progress upstream:
+  [libkrun#912](https://github.com/libkrun/libkrun/pull/912) (fixes
+  libkrun#10) adds a vsock control server to krun-init, and the
+  AlphaJack/crun `krun-exec` branch routes `krun kill` through it.
+  *Measured* with both built from source: with the OCI annotation
+  `krun.exec=1`, SIGTERM reaches the workload and it exits cleanly under
+  podman (3 s) and under containerd's runc v2 shim (4 s). Without the
+  annotation, behavior is unchanged. Both target libkrun 2.0, which is not
+  released. Details and caveats:
   [upstream/libkrun-sigterm-forwarding.md](upstream/libkrun-sigterm-forwarding.md).
-  This is a libkrun change, not a celld or workerd change.
+  This is a libkrun and crun change, not a celld or workerd change.
 - **Kata** forwards signals through the shim and the kata-agent to the
   container process in the guest (`SignalProcess`). It was not measured here
   (no Kata install on this host). The Kubernetes-level e2e spec
