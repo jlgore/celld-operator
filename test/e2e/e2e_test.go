@@ -272,6 +272,8 @@ var _ = Describe("Manager", Ordered, func() {
 
 		It("should roll a WorkerApp and retain local state", verifyWorkerAppLifecycle)
 
+		It("should isolate tenants from each other", verifyTenantIsolation)
+
 	})
 })
 

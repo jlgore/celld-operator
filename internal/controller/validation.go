@@ -88,7 +88,7 @@ func (r *WorkerAppReconciler) validateTrust(app *platformv1alpha1.WorkerApp) err
 	if creds.AzureClientID != "" && !slices.Contains(r.AllowedAzureClientIDs, creds.AzureClientID) {
 		return fmt.Errorf("azure identity is not in the operator allowlist")
 	}
-	if endpoint := app.Spec.Bucket.Endpoint; endpoint != "" {
+	if endpoint := app.Spec.Bucket.Endpoint; endpoint != "" && (!r.LocalBucketEndpoints || !namespaceLocalEndpoint(app, endpoint)) {
 		parsed, err := url.Parse(endpoint)
 		if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" || !slices.Contains(r.AllowedBucketEndpoints, endpoint) {
 			return fmt.Errorf("bucket endpoint must be an explicitly allowed HTTPS URL without credentials, query, or fragment")
@@ -105,4 +105,20 @@ func validateVars(app *platformv1alpha1.WorkerApp) error {
 		return fmt.Errorf("vars.secretRef is unsupported by celld v0.5+; move vars into the deployment's Wrangler configuration and remove spec.vars")
 	}
 	return nil
+}
+
+// namespaceLocalEndpoint reports whether endpoint names a Service in the
+// app's own namespace, such as a tenant's request-signing storage proxy:
+// http(s)://<service>.<namespace>.svc.<clusterDomain>:<port> with no path,
+// credentials, query, or fragment. Plain HTTP is accepted because the hop
+// never leaves the namespace and rides the mesh or CNI encryption that also
+// carries peer traffic.
+func namespaceLocalEndpoint(app *platformv1alpha1.WorkerApp, endpoint string) bool {
+	parsed, err := url.Parse(endpoint)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.User != nil ||
+		parsed.RawQuery != "" || parsed.Fragment != "" || (parsed.Path != "" && parsed.Path != "/") || parsed.Port() == "" {
+		return false
+	}
+	service, ok := strings.CutSuffix(parsed.Hostname(), fmt.Sprintf(".%s.svc.%s", app.Namespace, clusterDomain(app)))
+	return ok && len(validation.IsDNS1123Label(service)) == 0
 }

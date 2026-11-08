@@ -348,6 +348,7 @@ func buildPodTemplate(app *platformv1alpha1.WorkerApp, configHash, appVersion st
 			Tolerations:                   app.Spec.Scheduling.Tolerations,
 			Affinity:                      fleetAffinity(app),
 			ServiceAccountName:            fleetName(app),
+			RuntimeClassName:              app.Spec.RuntimeClassName,
 			TerminationGracePeriodSeconds: ptr.To(int64(terminationGraceS)),
 			Containers:                    []corev1.Container{container},
 			Volumes:                       volumes,
@@ -510,6 +511,8 @@ func buildNetworkPolicy(app *platformv1alpha1.WorkerApp, operatorNamespace strin
 						Protocol: &protoTCP,
 						Port:     ptr.To(intstr.FromInt32(publicPort)),
 					}},
+					// Unset: open to every source, as before.
+					From: app.Spec.PublicIngressFrom,
 				},
 			},
 		},

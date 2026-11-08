@@ -22,6 +22,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the celld-operator itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- tenant_admin_role.yaml
+- tenant_editor_role.yaml
+- tenant_viewer_role.yaml
 - workerapp_admin_role.yaml
 - workerapp_editor_role.yaml
 - workerapp_viewer_role.yaml

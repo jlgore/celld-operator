@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -415,6 +416,22 @@ type WorkerAppSpec struct {
 	// X-Forwarded-Host), since celld takes the last value of each.
 	// +optional
 	TrustForwardedHeaders bool `json:"trustForwardedHeaders,omitempty"`
+
+	// runtimeClassName runs fleet pods under a RuntimeClass, e.g. a microVM
+	// runtime such as "krun" or "kata". Unset uses the cluster default.
+	// Changing it rolls the fleet through the ordinary gated rollout.
+	// +optional
+	// +kubebuilder:validation:MaxLength=253
+	RuntimeClassName *string `json:"runtimeClassName,omitempty"`
+
+	// publicIngressFrom restricts which sources may reach the public
+	// listener (:8080) in the fleet NetworkPolicy. Unset keeps the
+	// listener open to every source, with the gateway and mesh policy in
+	// front of it. NetworkPolicies are additive, so a namespace
+	// default-deny cannot narrow an open rule; this field can.
+	// +optional
+	// +listType=atomic
+	PublicIngressFrom []networkingv1.NetworkPolicyPeer `json:"publicIngressFrom,omitempty"`
 }
 
 // WorkerAppPhase summarizes the fleet at a glance.

@@ -78,6 +78,10 @@ type WorkerAppReconciler struct {
 	AllowedIAMRoles        []string
 	AllowedAzureClientIDs  []string
 	AllowedBucketEndpoints []string
+	// LocalBucketEndpoints accepts a bucket endpoint that is
+	// a Service in the WorkerApp's own namespace (a tenant storage proxy)
+	// without listing it in AllowedBucketEndpoints.
+	LocalBucketEndpoints bool
 	// HTTPRouteRetries must be enabled only with experimental Gateway API CRDs.
 	HTTPRouteRetries bool
 

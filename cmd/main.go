@@ -46,6 +46,7 @@ import (
 
 	platformv1alpha1 "github.com/ezgamehost/celld-operator/api/v1alpha1"
 	"github.com/ezgamehost/celld-operator/internal/controller"
+	"github.com/ezgamehost/celld-operator/internal/controller/tenant"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -123,6 +124,7 @@ func main() {
 		"How often fleet buckets' deploy/current.json is polled for appVersion \"auto\" tracking.")
 	var watchNamespace, imagePrefixes, iamRoles, azureIDs, bucketEndpoints string
 	var routeRetries bool
+	var namespaceLocalEndpoints bool
 	flag.StringVar(&watchNamespace, "watch-namespace", "",
 		"Restrict reconciliation to this namespace; pair with namespaced RBAC.")
 	flag.StringVar(&imagePrefixes, "allowed-image-prefixes", "ghcr.io/denoland/celld:",
@@ -131,13 +133,17 @@ func main() {
 	flag.StringVar(&azureIDs, "allowed-azure-client-ids", "", "Comma-separated allowed Azure workload identities.")
 	flag.StringVar(&bucketEndpoints, "allowed-bucket-endpoints", "",
 		"Allowed HTTPS storage endpoints; empty permits AWS S3 only.")
+	flag.BoolVar(&namespaceLocalEndpoints, "allow-namespace-local-bucket-endpoints", false,
+		"Accept a bucket endpoint that is a Service in the WorkerApp's own namespace (a tenant storage proxy).")
 	flag.BoolVar(&routeRetries, "httproute-retries", false,
 		"Requires experimental Gateway API CRDs.")
 	opts := zap.Options{
 		Development: false,
 	}
+	tenants := tenant.RegisterFlags()
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+	namespaceLocalEndpoints = namespaceLocalEndpoints || tenants.Enabled()
 	validModes := []string{controller.IngressModeHTTPRoute, controller.IngressModeIngress,
 		controller.IngressModeVirtualService, controller.IngressModeNone}
 	if !slices.Contains(validModes, ingressMode) || statePollInterval <= 0 || deployPollInterval <= 0 {
@@ -262,6 +268,7 @@ func main() {
 		AllowedAzureClientIDs:  splitList(azureIDs),
 		AllowedBucketEndpoints: splitList(bucketEndpoints),
 		HTTPRouteRetries:       routeRetries,
+		LocalBucketEndpoints:   namespaceLocalEndpoints,
 		Client:                 mgr.GetClient(),
 		Scheme:                 mgr.GetScheme(),
 		State:                  stateClient,
@@ -287,6 +294,10 @@ func main() {
 		Interval: statePollInterval,
 	}); err != nil {
 		setupLog.Error(err, "Failed to add fleet state poller")
+		os.Exit(1)
+	}
+	if err := tenants.Setup(mgr, watchNamespace, operatorNamespace, gatewayNamespace); err != nil {
+		setupLog.Error(err, "Failed to create controller", "controller", "Tenant")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

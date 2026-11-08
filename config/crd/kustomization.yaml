@@ -3,6 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/celld-operator.io_workerapps.yaml
+- bases/celld-operator.io_tenants.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

@@ -3,6 +3,7 @@ from pathlib import Path
 
 for source, target, key in [
     ("config/crd/bases/celld-operator.io_workerapps.yaml", "dist/chart/templates/crd/celld-operator.io_workerapps.yaml", "spec:"),
+    ("config/crd/bases/celld-operator.io_tenants.yaml", "dist/chart/templates/crd/celld-operator.io_tenants.yaml", "spec:"),
     ("config/rbac/role.yaml", "dist/chart/templates/rbac/role.yaml", "rules:"),
 ]:
     generated = Path(source).read_text()

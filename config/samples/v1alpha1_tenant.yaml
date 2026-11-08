@@ -1,0 +1,32 @@
+apiVersion: celld-operator.io/v1alpha1
+kind: Tenant
+metadata:
+  labels:
+    app.kubernetes.io/name: celld-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: acme
+spec:
+  runtimeClassName: krun          # or kata
+  nodes: 3
+  resources:
+    cpuMillis: 2000               # request = hard limit, per node
+    memoryGi: 4                   # also the microVM's RAM under krun
+  volume:
+    sizeGi: 20                    # per-node SQLite PVC, block-backed class
+    storageClassName: ebs-gp3
+  bucket:
+    name: s3://platform-cells/tenants/acme
+    region: us-east-1
+  credentials:
+    webIdentity:                  # short-lived, minted from a projected SA token
+      roleARN: arn:aws:iam::123456789012:role/celld-tenant-acme
+  app:
+    image: registry.example.com/celld:v0.6.2-sigint   # STOPSIGNAL SIGINT, see docs/isolation/FINDINGS.md
+    appVersion: sha-abc123
+    hostnames: ["chat.acme.example.com"]
+    durability: fleet
+  admin:
+    mode: Gateway
+    allowedServiceAccounts:
+      - namespace: platform-ops
+        name: celld-admin
