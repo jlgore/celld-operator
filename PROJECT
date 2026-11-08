@@ -21,4 +21,10 @@ resources:
   kind: WorkerApp
   path: github.com/ezgamehost/celld-operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+  domain: celld-operator.io
+  kind: Tenant
+  path: github.com/ezgamehost/celld-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"
